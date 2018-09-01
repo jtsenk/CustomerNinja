@@ -1,4 +1,4 @@
-package pos;
+package com.customerninja2;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

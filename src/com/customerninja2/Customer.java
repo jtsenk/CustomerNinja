@@ -1,4 +1,4 @@
-package pos;
+package com.customerninja2;
 
 import java.sql.ResultSet;
 import javafx.beans.property.SimpleStringProperty;
