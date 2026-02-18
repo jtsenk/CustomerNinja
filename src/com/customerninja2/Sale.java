@@ -7,7 +7,6 @@ package com.customerninja2;
 
 import java.sql.ResultSet;
 import java.util.Date;
-import javafx.beans.property.SimpleStringProperty;
 
 /**
  *
@@ -23,11 +22,6 @@ public class Sale {
     private NinjaConn njc;
     private ResultSet rset;
     
-    private SimpleStringProperty idP;
-    private SimpleStringProperty dateP;
-    private SimpleStringProperty valueP;
-    private SimpleStringProperty customerNameP;
-    
     public Sale(int id) {
 		
 		this.id = id;
@@ -41,11 +35,6 @@ public class Sale {
 		value = rset.getDouble("value");		
 		customerName = rset.getString("customer");
 		
-                idP = new SimpleStringProperty(Integer.toString(this.id));
-                dateP = new SimpleStringProperty(date);
-                valueP = new SimpleStringProperty(Double.toString(value));
-                customerNameP = new SimpleStringProperty(customerName);
-                
 		} catch (Exception ex) {
 			System.out.println("Sale Construct Fail!  " + ex.getLocalizedMessage() );
 		} finally {
@@ -54,23 +43,21 @@ public class Sale {
 		
 	}
 
-    public String getIdP() {
-        return idP.get();
+    public int getId() {
+        return id;
     }
     
-    public String getDateP() {
-        return dateP.get();
+    public String getDate() {
+        return date;
     }
     
-    public String getValueP() {
-        return valueP.get();
+    public Double getValue() {
+        return value;
     }
 
-    public String getCustomerNameP() {
-        return customerNameP.get();
+    public String getCustomerName() {
+        return customerName;
     }
 
-
-
-    
 }
+

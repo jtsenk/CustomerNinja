@@ -5,53 +5,60 @@
  */
 package com.customerninja2;
 
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
+import javax.swing.*;
 
 /**
- *
+ * Main application entry point - converted from JavaFX to Swing
  * @author mellon
  */
-public class Pos extends Application{
-    Parent root;
-    static Stage primarystage;
-    //Notes
-    // ANY unimplemented handlers will throw Invocation exception
-    // DO NOT USE onMouseClick will throw several mismatch execeptions
+public class Pos {
+    static JFrame primaryFrame;
     
-    @Override
-    public void start(Stage stage) throws Exception{
-        //set a reference to the primary stage
-        primarystage = stage;
-        root = FXMLLoader.load(getClass().getResource("LoginPage.fxml"));//must have the fxml location
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+    /**
+     * Change the current view to a new panel
+     * @param panel - the panel to be displayed next
+     * @param title - the title of the new frame
+     * @throws Exception
+     */
+    public static void changePanel(JPanel panel, String title) throws Exception {
+        if (primaryFrame != null) {
+            primaryFrame.getContentPane().removeAll();
+            primaryFrame.getContentPane().add(panel);
+            primaryFrame.setTitle(title);
+            primaryFrame.revalidate();
+            primaryFrame.repaint();
+        }
     }
     
     /**
-     * 
-     * @param scene - the scene to be displayed next
-     * @param title - the title of the new scene
-     * @throws Exception
+     * Get the primary frame reference
+     * @return the main application frame
      */
-    public static void changeScene(Scene scene, String title) throws Exception{ 
-        primarystage.close();
-        Scene newscene = scene;
-        primarystage.setScene(newscene);
-        primarystage.setTitle(title);
-        primarystage.show();
+    public static JFrame getPrimaryFrame() {
+        return primaryFrame;
     }
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args){
-        launch(args);
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            primaryFrame = new JFrame("CustomerNinja - POS System");
+            primaryFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            primaryFrame.setSize(1280, 720);
+            primaryFrame.setLocationRelativeTo(null);
+            
+            try {
+                // Load the login panel
+                LoginPanel loginPanel = new LoginPanel();
+                primaryFrame.setContentPane(loginPanel);
+                primaryFrame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(primaryFrame, "Failed to load login panel: " + e.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
     
 }
