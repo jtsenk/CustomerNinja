@@ -8,6 +8,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
 
 /**
@@ -92,9 +94,9 @@ public class EmployeeManagementPanel extends JPanel {
         
         employeeTable = new JTable(tableModel);
         employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        employeeTable.addMouseListener(new javax.swing.event.MouseAdapter() {
+        employeeTable.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(javax.swing.event.MouseEvent e) {
+            public void mouseClicked(MouseEvent e) {
                 int row = employeeTable.getSelectedRow();
                 if (row >= 0) {
                     String username = (String) tableModel.getValueAt(row, 1);
@@ -168,8 +170,8 @@ public class EmployeeManagementPanel extends JPanel {
     }
     
     private void addEmployee() {
-        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), 
-            "Add New Employee", true);
+        JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), 
+            "Add New Employee", JDialog.DEFAULT_MODALITY_TYPE);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setSize(300, 250);
         dialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));

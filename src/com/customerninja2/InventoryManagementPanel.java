@@ -388,7 +388,7 @@ public class InventoryManagementPanel extends JPanel {
     }
     
     private void showAboutDialog() {
-        JDialog aboutDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "About CustomerNinja", true);
+        JDialog aboutDialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), "About CustomerNinja", true);
         aboutDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         aboutDialog.setSize(400, 200);
         aboutDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
@@ -437,7 +437,7 @@ class AddItemDialog extends JDialog {
     private Inventory inventory;
     
     public AddItemDialog(java.awt.Window owner, Inventory inventory) {
-        super(owner, "Add New Item", ModalityType.APPLICATION_MODAL);
+        super((owner instanceof JFrame) ? (JFrame) owner : null, "Add New Item", JDialog.DEFAULT_MODALITY_TYPE);
         this.inventory = inventory;
         
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);

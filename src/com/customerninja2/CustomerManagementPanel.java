@@ -8,6 +8,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
 
 /**
@@ -91,9 +93,9 @@ public class CustomerManagementPanel extends JPanel {
         
         customerTable = new JTable(tableModel);
         customerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        customerTable.addMouseListener(new javax.swing.event.MouseAdapter() {
+        customerTable.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(javax.swing.event.MouseEvent e) {
+            public void mouseClicked(MouseEvent e) {
                 int row = customerTable.getSelectedRow();
                 if (row >= 0) {
                     int customerId = (Integer) tableModel.getValueAt(row, 0);

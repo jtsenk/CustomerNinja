@@ -160,7 +160,7 @@ public class ManagerNavPanel extends JPanel {
     }
     
     private void showAboutDialog() {
-        JDialog aboutDialog = new JDialog(SwingUtilities.getWindowAncestor(this), "About CustomerNinja", true);
+        JDialog aboutDialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), "About CustomerNinja", true);
         aboutDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         aboutDialog.setSize(400, 200);
         aboutDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
