@@ -26,6 +26,13 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.44.0.0</version>
         </dependency>
+
+        <!-- Bcrypt for Secure Password Hashing (replaces deprecated 3DES) -->
+        <dependency>
+            <groupId>at.favre.lib</groupId>
+            <artifactId>bcrypt</artifactId>
+            <version>0.10.2</version>
+        </dependency>
     </dependencies>
 
     <build>

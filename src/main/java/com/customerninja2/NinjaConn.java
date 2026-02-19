@@ -1,10 +1,7 @@
 package com.customerninja2;
 
 import java.sql.*;
-import java.util.*;
-import java.security.*;
-import javax.crypto.*;
-import javax.crypto.spec.SecretKeySpec;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 
 public class NinjaConn {
 
@@ -182,157 +179,75 @@ public class NinjaConn {
     	}
     }
     
-    /*DO NOT USE THE BELOW METHOD!!!!!!!
-    * IT IS STIL EXPERIMENTAL!!
-    */ 
-    private String getDPW(String name) {
-    	
-    	//AES with GCM: much stronger encryption but DOES NOT WORK YET
-    	rSet = quName(name, "tbUsers");
-    	
-    	try {
-    	
-    		Cipher ciph = Cipher.getInstance("AES/GCM/PKCS5Padding");
-    		System.out.println("Got ciph.");
-    		byte[] keyBytes = hexToByteArr(rSet.getString("P1") );
-    		System.out.println("Got the key_string: " + rSet.getString("P1") + "\n" + Arrays.toString(keyBytes) );
-    		SecretKey sKeySpec = new SecretKeySpec(keyBytes, "AES");
-    		System.out.println("Got the SK.");
-    		ciph.init(Cipher.DECRYPT_MODE, sKeySpec, ciph.getParameters() );
-    		System.out.println("Cipher init OK.");
-    			
-    		byte[] dpwi = hexToByteArr(rSet.getString("P2") );
-    		System.out.println("Got the ciphertext_string: " + rSet.getString("P2") + "\n" + Arrays.toString(dpwi) );
-    		ciph.update(dpwi);
-    		System.out.println("Passed dpwi_bytes to ciph.");
-    		byte[] dpw = ciph.doFinal();
-    		System.out.println("DC OK.");
-			String dePW = new String(dpw);
-			System.out.println("String OK.");
-			
-			System.out.print("Decrypted pw= ");
-			System.out.println(dePW);
-			
-			return dePW;
-			
-    	} catch (Exception exc) {
-    		System.out.println("Decryption Error!! " + exc.toString() );
-    		return null;
-    	}
-    	
+    /*
+     * ========== PASSWORD MANAGEMENT (Bcrypt-based) ==========
+     * 
+     * Bcrypt provides industry-standard, secure password hashing with:
+     * - Built-in salt generation
+     * - Adaptive cost (resistant to GPU/ASIC attacks)
+     * - Recommended by OWASP and NIST
+     * 
+     * Replaces deprecated Triple DES (3DES) encryption
+     */
+    
+    /**
+     * Hash a password using Bcrypt and store it in the database
+     * @param name Username
+     * @param password Plain-text password to hash
+     * @return true if successful, false otherwise
+     */
+    public Boolean hashAndStore(String name, String password) {
+        rSet = quName(name, "tbUsers");
+        
+        try {
+            // Hash password with Bcrypt (cost factor 12 = ~250ms on modern hardware)
+            String hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+            
+            // Store only the hash in database (password can never be decrypted)
+            sqlText = "UPDATE tbUsers SET P2='" + hashedPassword + "' WHERE ID=" + rSet.getString("ID");
+            stmt.executeUpdate(sqlText);
+            
+            return true;
+            
+        } catch (Exception exc) {
+            System.out.println("hashAndStore Error: " + exc.toString());
+            return false;
+        }
     }
     
-    public byte[] hexToByteArr(String hex) {
-		
-		byte[] result = new byte[hex.length()/2];
-		int pos;
-		int intermed;
-		
-		for (int i=0; i < result.length; i++) {
-			pos = i*2;
-			intermed = Integer.parseInt(hex.substring(pos, pos+2), 16);
-			result[i] = (byte)intermed;
-		}
-		
-		return result;
-		
-	}
-    
-    public String getAndD(String uname) {
-    	
-    	//get user info
-    	rSet = quUname(uname, "tbUsers");
-    	
-    	try {
-    		
-    		Key dk = new SecretKeySpec(hexToByteArr(rSet.getString("P1")), "DESede");
-    		byte[] dkb = dk.getEncoded();
-    		//check dkb
-    		//System.out.println("retrieved dkb= " + Arrays.toString(dkb) );
-    		
-    		Cipher ciph = Cipher.getInstance("DESede");
-    		ciph.init(Cipher.DECRYPT_MODE, dk);
-    		
-    		byte[] eBytes = hexToByteArr(rSet.getString("P2") );
-    		//check eBytes
-    		//System.out.println("retrieved ebytes= " + Arrays.toString(eBytes) );
-    		
-    		byte[] dBytes = ciph.doFinal(eBytes);
-    		
-    		//return the decrypted string
-    		return new String(dBytes);
-    		
-    	} catch (Exception exc) {
-    		System.out.println("getAndD fail: " + exc.toString() );
-    		//it didn't work: return nothing
-    		return null;
-    	}
-    	
+    /**
+     * Verify a password against the stored Bcrypt hash
+     * @param plainPassword Plain-text password to verify
+     * @param username Username to look up
+     * @return true if password matches, false otherwise
+     */
+    public Boolean verifyPassword(String plainPassword, String username) {
+        rSet = quUname(username, "tbUsers");
+        
+        try {
+            // Get the stored hash from database
+            String storedHash = rSet.getString("P2");
+            
+            // Verify password against hash (Bcrypt internally extracts salt from hash)
+            BCrypt.Result result = BCrypt.verifyer().verify(plainPassword.toCharArray(), storedHash);
+            
+            System.out.println("Password verification: " + (result.verified ? "SUCCESS" : "FAILED"));
+            return result.verified;
+            
+        } catch (Exception exc) {
+            System.out.println("verifyPassword Error: " + exc.toString());
+            return false;
+        }
     }
     
-    public Boolean eAndStore(String name, String inp) {
-    	
-    	//get the user info
-    	rSet = quName(name, "tbUsers");
-    	
-    	//here we go
-    	try {
-    		
-    		Key dk = KeyGenerator.getInstance("DESede").generateKey();
-    		byte[] dkb = dk.getEncoded();
-    		
-    		//check dkb
-    		//System.out.println("generated dkb= " + Arrays.toString(dkb) );
-    		
-    		Cipher ciph = Cipher.getInstance("DESede");
-			ciph.init(Cipher.ENCRYPT_MODE, dk);
-			byte[] eBytes = ciph.doFinal(inp.getBytes() );
-			
-			//check eBytes
-			//System.out.println("generated ebytes= " + Arrays.toString(eBytes) );
-    		
-			
-    		sqlText = "UPDATE tbUsers SET P1=\'" + bytesToHex(dkb) + "\', P2=\'" + bytesToHex(eBytes) + "\' WHERE ID=" + rSet.getString("ID");
-    		//check the sqlText
-    		//System.out.println("sqlText= " + sqlText);
-    		//do the sql
-    		stmt.executeUpdate(sqlText);
-    		
-    		//it worked
-    		return true;
-    		
-    	} catch (Exception exc) {
-    		System.out.println("eAndStore Error: " + exc.toString() );
-    		//it didn't work
-    		return false;
-    	}
-    	
-    }
-    
-    public String bytesToHex(byte[] bytes) {
-    		
-    		int hex=0;
-    		StringBuffer sBuff = new StringBuffer(bytes.length * 2);
-    		for (int i=0; i<bytes.length; i++) {
-    			hex = bytes[i] & 0xff;
-    			if (hex < 16) {
-    				sBuff.append(0);
-    			}
-    			sBuff.append(Integer.toHexString(hex));
-    			
-    		}
-    		
-    		return sBuff.toString();
-    		
-    }
-    
-    //returns true if checked password is equal to decrypted password
-    public Boolean checkAccess(String pw, String uname) {
-    	if (pw.equals(getAndD(uname)) ) {
-    		return true;
-    	} else {
-    		return false;
-    	}
+    /**
+     * Check access - verify username and password for login
+     * @param password Plain-text password
+     * @param username Username
+     * @return true if credentials valid, false otherwise
+     */
+    public Boolean checkAccess(String password, String username) {
+        return verifyPassword(password, username);
     }
     
     public void close() {
